@@ -17,3 +17,23 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Validate data schema and quality
+        run: |
+          python - <<'EOF'
+          import pandas as pd
+          from sklearn.datasets import fetch_california_housing
+          from src.data.validate_data import validate
+
+          housing = fetch_california_housing(as_frame=True)
+          df = housing.frame.drop(columns=["MedHouseVal"], errors="ignore")
+          validate(df)
+          EOF
