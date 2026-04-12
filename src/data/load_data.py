@@ -59,7 +59,9 @@ def save_dataset(df: pd.DataFrame, path: str) -> None:
         df: DataFrame to save.
         path: Destination file path.
     """
-    os.makedirs(os.path.dirname(path), exist_ok=True)
+    directory = os.path.dirname(path)
+    if directory:
+        os.makedirs(directory, exist_ok=True)
     df.to_csv(path, index=False)
 
 
