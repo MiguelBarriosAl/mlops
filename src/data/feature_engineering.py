@@ -22,13 +22,13 @@ def feature_engineering(df: pd.DataFrame) -> pd.DataFrame:
     """Apply feature engineering steps and return the enriched DataFrame.
 
     New features created:
-    - rooms_per_household: average rooms divided by average occupancy
-    - bedrooms_per_room: average bedrooms divided by average rooms
+    - rooms_per_household: AveRooms / AveOccup (rooms per occupant on average)
+    - bedrooms_per_room: AveBedrms / AveRooms (bedroom fraction of total rooms)
     - log_population: log(Population + 1) to reduce skewness
     """
     df = df.copy()
 
-    # Ratio of rooms to household occupants
+    # Ratio of average rooms to average occupancy (rooms available per occupant)
     # Use np.where to avoid division by zero (returns 0 when denominator is 0)
     df["rooms_per_household"] = np.where(
         df["AveOccup"] != 0,
