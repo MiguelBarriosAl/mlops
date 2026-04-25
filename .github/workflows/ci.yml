@@ -1,0 +1,35 @@
+# MLOps concept:
+# Continuous Integration runs the full pipeline automatically on every push.
+# If any step fails, the workflow stops and the team is notified immediately,
+# catching broken data, bad models, or failing scripts before they reach main.
+
+name: CI — Training Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run data pipeline
+        # Loads, validates, preprocesses and engineers features
+        run: python src/pipelines/run_data_pipeline.py
+
+      - name: Run training pipeline
+        # Trains models, evaluates quality gate, registers champion
+        run: python src/pipelines/run_training.py
