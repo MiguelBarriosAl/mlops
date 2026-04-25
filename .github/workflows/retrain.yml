@@ -1,45 +1,46 @@
 # MLOps concept:
-# Scheduled retraining keeps the model fresh as real-world data evolves.
-# Running the pipeline every Monday ensures the team starts the week with
-# an up-to-date model without any manual intervention.
+# Models degrade as real-world data drifts over time.
+# Running the full pipeline on a schedule keeps the champion model fresh.
 
 name: Scheduled Retraining
 
 on:
   schedule:
     - cron: "0 8 * * 1"  # Every Monday at 08:00 UTC
-  workflow_dispatch:       # Also triggerable manually from the GitHub Actions UI
 
 jobs:
   retrain:
     runs-on: ubuntu-latest
-
     steps:
+      # Download the repository files onto the runner
       - name: Checkout code
         uses: actions/checkout@v4
-
+      # Install the Python version used in development
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-
+      # Install all project libraries
       - name: Install dependencies
         run: pip install -r requirements.txt
-
-      - name: Run data pipeline
-        # Loads, validates, preprocesses and engineers features
-        run: python src/pipelines/run_data_pipeline.py
-
-      - name: Run training pipeline
-        # Trains models, evaluates quality gate, registers champion
-        run: python src/pipelines/run_training.py
-
-      - name: Print registered model version
-        # Shows which version was just registered so the log is self-documenting
-        run: |
-          python - <<'EOF'
-          from mlflow import MlflowClient
-          client = MlflowClient(tracking_uri="mlruns")
-          versions = client.search_model_versions("name='california-housing-model'")
-          print("Registered version:", max(versions, key=lambda v: int(v.version)).version)
-          EOF
+      # Download California Housing and save to data/raw/
+      - name: Load raw data
+        run: python src/data/load_data.py
+      # Check field types and required columns with Pydantic
+      - name: Validate data
+        run: python src/data/validate_data.py
+      # Fill nulls, fix types, remove outliers → data/processed/train_v1.csv
+      - name: Preprocess data
+        run: python src/data/preprocess.py
+      # Add engineered features → data/processed/train_features_v1.csv
+      - name: Feature engineering
+        run: python src/data/feature_engineering.py
+      # Train LinearRegression and RandomForest; log runs to MLflow
+      - name: Train models
+        run: python src/models/train.py
+      # Run quality gate: exit 1 if rmse >= 0.6 or r2 <= 0.7
+      - name: Evaluate model
+        run: python src/models/evaluate_model.py
+      # Register the best run in the MLflow Model Registry
+      - name: Register model
+        run: python src/models/register_model.py
