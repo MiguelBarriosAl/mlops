@@ -48,7 +48,7 @@ _state: dict = {
 
 
 def load_champion_model() -> None:
-    """Loaad the champion model from the MLflow registry into _state.
+    """Load the champion model from the MLflow registry into _state.
 
     Sets the MLflow tracking URI, loads the pyfunc model, and fetches version
     metadata via MlflowClient. Raises RuntimeError if the alias does not exist.
