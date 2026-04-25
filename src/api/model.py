@@ -62,7 +62,7 @@ def load_champion_model() -> None:
 
         client = MlflowClient()
         mv = client.get_model_version_by_alias(MODEL_NAME, MODEL_ALIAS)
-        _state["model_version"] = mv.version
+        _state["model_version"] = str(mv.version)
         _state["run_id"] = mv.run_id
         logger.info("Model loaded — version=%s  run_id=%s", mv.version, mv.run_id)
     except Exception as exc:
