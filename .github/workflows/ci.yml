@@ -1,7 +1,3 @@
-# MLOps concept:
-# Every push to main triggers this workflow automatically.
-# If any step fails, GitHub stops the run and marks the commit as broken.
-
 name: CI — Training Pipeline
 
 on:

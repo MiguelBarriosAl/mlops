@@ -58,10 +58,16 @@ def load_champion_model() -> None:
 
     logger.info("Loading model from registry: %s", MODEL_URI)
     try:
-        _state["model"] = mlflow.pyfunc.load_model(MODEL_URI)
-
         client = MlflowClient()
         mv = client.get_model_version_by_alias(MODEL_NAME, MODEL_ALIAS)
+
+        # Build the artifact path from known components instead of following the
+        # stored artifact_uri, which is an absolute host path and breaks in Docker.
+        run = client.get_run(mv.run_id)
+        model_path = (
+            MLFLOW_TRACKING_URI / run.info.experiment_id / mv.run_id / "artifacts" / "model"
+        )
+        _state["model"] = mlflow.pyfunc.load_model(str(model_path))
         _state["model_version"] = str(mv.version)
         _state["run_id"] = mv.run_id
         logger.info("Model loaded — version=%s  run_id=%s", mv.version, mv.run_id)
